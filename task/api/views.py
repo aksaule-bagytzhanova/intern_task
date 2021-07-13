@@ -1,4 +1,7 @@
+from django.db.models.query import QuerySet
 from django.shortcuts import render
+from django_filters import filters, filterset
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import serializers
 from rest_framework_simplejwt.views import TokenVerifyView
 import api
@@ -13,52 +16,76 @@ from .serializers import PostSerilizer
 from .models import Post
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
-
-
+from rest_framework import generics
+from django.http import Http404
+from rest_framework import status
+from .service import get_client_ip, PostFilter
+from django.db import models
 # Create your views here.
 
-class ShowAll(APIView):
+class ShowAll(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = PostFilter
 
-    
     def get(self, request):
-        posts = Post.objects.all()
+        posts = Post.objects.filter(id=False).annotate(
+            rating_user=models.Count("ratings",
+                                     filter=models.Q(ratings__ip=get_client_ip(self.request)))
+        ).annotate(
+            middle_star=models.Sum(models.F('ratings__star')) / models.Count(models.F('ratings'))
+        )
         serializers = PostSerilizer(posts, many=True)
         return Response(serializers.data)
 
 
 class ShowOnePost(APIView):
     permission_classes = [IsAuthenticated]
-    def ShowOnePost(request, pk):
+    def get(self,request, pk):
         posts = Post.objects.get(id=pk)
         serializers = PostSerilizer(posts, many=False)
         return Response(serializers.data)
 
 class CreatePost(APIView):
     permission_classes = [IsAuthenticated]
-    def CreatePost(request):
+    def post(self,request, format=None):
         serializers = PostSerilizer(data=request.data)
 
         if serializers.is_valid():
             serializers.save()
 
-        return Response(serializers.data)
+            return Response(serializers.data, status=status.HTTP_201_CREATED)
+        return Response(serializers.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class UpdatePost(APIView):
-    def UpdatePost(request, pk):
-        posts = Post.object.get(id=pk)
-        serializers = PostSerilizer(instance=posts, data=request.data)
+    permission_classes = [IsAuthenticated]
+    def get_object(self, pk):
+        try:
+            return Post.objects.get(pk=pk)
+        except Post.DoesNotExist:
+            raise Http404
+
+    def put(self,request, pk, format=None):
+        posts = self.get_object(pk)
+        serializers = PostSerilizer(posts, data=request.data)
         if serializers.is_valid():
             serializers.save()
-        return Response(serializers.data)
+
+            return Response(serializers.data, status=status.HTTP_201_CREATED)
+        return Response(serializers.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class DeletePost(APIView):
-    def DeletePost(request, pk):
-        posts = Post.objects.get(id=pk)
+    permission_classes = [IsAuthenticated]
+    def get_object(self, pk):
+        try:
+            return Post.objects.get(pk=pk)
+        except Post.DoesNotExist:
+            raise Http404
+    def delete(self,request, pk,format=None):
+        posts = self.get_object(pk)
         posts.delete()
-
-        return Response('Item delete successfully!')
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 class RegisterView(APIView):
 

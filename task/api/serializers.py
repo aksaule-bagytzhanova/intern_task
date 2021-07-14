@@ -8,3 +8,10 @@ class PostSerilizer(serializers.ModelSerializer):
         model = Post
         fields = '__all__'
 
+
+class PostSerilizerFilter(serializers.ModelSerializer):
+
+    class Meta:
+        model = Post
+        fields = '__all__'
+        

@@ -23,20 +23,13 @@ from .service import get_client_ip, PostFilter
 from django.db import models
 # Create your views here.
 
-class ShowAll(generics.RetrieveAPIView):
+class ShowAll(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
-    filter_backends = (DjangoFilterBackend,)
+    filter_backends = (DjangoFilterBackend, )
     filterset_class = PostFilter
-
-    def get(self, request):
-        posts = Post.objects.filter(id=False).annotate(
-            rating_user=models.Count("ratings",
-                                     filter=models.Q(ratings__ip=get_client_ip(self.request)))
-        ).annotate(
-            middle_star=models.Sum(models.F('ratings__star')) / models.Count(models.F('ratings'))
-        )
-        serializers = PostSerilizer(posts, many=True)
-        return Response(serializers.data)
+    queryset = Post.objects.filter()
+    serializer_class = PostSerilizer
+   
 
 
 class ShowOnePost(APIView):

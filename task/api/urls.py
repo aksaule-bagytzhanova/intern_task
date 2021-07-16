@@ -9,11 +9,9 @@ urlpatterns = [
     path('register/', views.RegisterView.as_view(), name='register'),
     path('login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('show_all/', views.ShowAll.as_view(), name='showAll'),
-    path('show_one/<int:pk>/', views.ShowOnePost.as_view(), name='OnePost'),
-    path('create_post/', views.CreatePost.as_view(), name='Create_Post'),
-    path('update_post/<int:pk>/', views.UpdatePost.as_view(), name='Update_Post'),
-    path('delete_post/<int:pk>/', views.DeletePost.as_view(), name='Delete_Post'),
-    path('token/verify/', TokenVerifyView().as_view(), name='token_verify'),
+    path('token/verify/', TokenVerifyView.as_view(), name='token_verify'),
+    path('posts/', views.PostsWithNoPK.as_view()),
+    path('posts/<int:pk>/', views.PostsWithPK.as_view()),
+    
     
 ]

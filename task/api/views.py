@@ -1,10 +1,10 @@
+import api
 from django.db.models.query import QuerySet
 from django.shortcuts import render
 from django_filters import filters, filterset
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import serializers
+from rest_framework import mixins, serializers
 from rest_framework_simplejwt.views import TokenVerifyView
-import api
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import BasePermission
@@ -19,40 +19,39 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import generics
 from django.http import Http404
 from rest_framework import status
-from .service import get_client_ip, PostFilter
+from .service import get_client_ip, PostFilter, PaginationMovies
 from django.db import models
 # Create your views here.
 
-class ShowAll(generics.ListAPIView):
+
+class PostsWithNoPK(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
+    queryset = Post.objects.filter()
+    serializer_class = PostSerilizer
     filter_backends = (DjangoFilterBackend, )
     filterset_class = PostFilter
-    queryset = Post.objects.filter()
-    serializer_class = PostSerilizer
-   
+    pagination_class = PaginationMovies
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
 
 
-class ShowOnePost(generics.RetrieveAPIView):
+class PostsWithPK(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
     queryset = Post.objects.filter()
     serializer_class = PostSerilizer
 
-class CreatePost(generics.CreateAPIView):
-    permission_classes = [IsAuthenticated]
-    serializer_class = PostSerilizer
-    
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
 
-class UpdatePost(generics.RetrieveUpdateAPIView):
-    permission_classes = [IsAuthenticated]
-    queryset = Post.objects.all()
-    serializer_class = PostSerilizer
-    
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
 
-
-class DeletePost(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = [IsAuthenticated]
-    queryset = Post.objects.all()
-    serializer_class = PostSerilizer
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
     
 
 class RegisterView(generics.CreateAPIView):

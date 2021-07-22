@@ -24,8 +24,8 @@ from django.db import models
 # Create your views here.
 
 
-class PostsWithNoPK(generics.ListCreateAPIView):
-    permission_classes = [IsAuthenticated]
+class PostList(generics.ListCreateAPIView):
+
     queryset = Post.objects.filter()
     serializer_class = PostSerilizer
     filter_backends = (DjangoFilterBackend, )
@@ -39,7 +39,7 @@ class PostsWithNoPK(generics.ListCreateAPIView):
         return self.create(request, *args, **kwargs)
 
 
-class PostsWithPK(generics.RetrieveUpdateDestroyAPIView):
+class PostDetail(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
     queryset = Post.objects.filter()
     serializer_class = PostSerilizer

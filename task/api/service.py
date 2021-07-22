@@ -6,7 +6,7 @@ from rest_framework.response import Response
 
 
 def get_client_ip(request):
-    x_forwarded_for  = request.Meta.get('HTTP_X_FORWARDED_FOR')
+    x_forwarded_for = request.Meta.get('HTTP_X_FORWARDED_FOR')
     if x_forwarded_for:
         ip = x_forwarded_for.split(',')[0]
     else:
@@ -25,6 +25,7 @@ class PostFilter(filters.FilterSet):
         model = Post
         fields = ['tag']
 
+
 class PaginationMovies(PageNumberPagination):
     page_size = 3
     max_page_size = 1000
@@ -35,6 +36,6 @@ class PaginationMovies(PageNumberPagination):
                 'next': self.get_next_link(),
                 'previous': self.get_previous_link()
             },
-            'count': self.get.pagunator.count,
+            'count': self.page.paginator.count,
             'results': data
         })
